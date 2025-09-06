@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>COMPLEXO ESCOLAR PRIVADO CASTELO REIS</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+h1 { text-align: center; color: #2c3e50; margin-top: 20px; }
+
+/* Container principal */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    gap: 20px;
+}
+
+/* Chatbot à esquerda */
+#chatbot-box {
+    flex: 1 1 350px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    max-height: 600px;
+    overflow-y: auto;
+}
+#chatbot-box h2 { margin-top: 0; font-size: 18px; color: #2c3e50; }
+#chatbot-box input, #chatbot-box textarea, #chatbot-box button {
+    width: 100%; margin: 5px 0; padding: 8px;
+    border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;
+}
+#chatbot-box button {
+    background: #3498db; color: white; border: none; cursor: pointer;
+}
+#chatbot-box button:hover { background: #2980b9; }
+.resposta-automatica { 
+    margin-top: 10px; padding: 8px; background: #ecf0f1; 
+    border-radius: 8px; font-size: 14px; color: #2c3e50; 
+    white-space: pre-line; /* Para manter as quebras de linha */
+}
+
+/* Coluna arquivos à direita */
+.col-arquivos {
+    flex: 1 1 600px;
+}
+.box {
+    background: white; padding: 20px; border-radius: 12px; 
+    box-shadow: 0 0 12px rgba(0,0,0,0.1); margin-bottom: 20px;
+}
+.box ul { list-style: none; padding: 0; }
+.box li { 
+    padding: 10px; 
+    margin-bottom: 10px; 
+    border-bottom: 1px solid #eee; 
+    position: relative;
+}
+.acoes-arquivo {
+    margin-top: 8px;
+}
+.acoes-arquivo a {
+    display: inline-block;
+    padding: 4px 8px;
+    margin-right: 5px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+}
+.btn-baixar {
+    background: #27ae60;
+    color: white;
+}
+.btn-remover {
+    background: #e74c3c;
+    color: white;
+    cursor: pointer;
+}
+.btn-remover:hover {
+    background: #c0392b;
+}
+.preview-img, .preview-pdf { 
+    width: 100%; max-height: 200px; margin-top: 5px; 
+    border-radius: 8px; border: 1px solid #ccc; 
+    object-fit: contain; /* Para manter a proporção da imagem */
+}
+.preview-pdf iframe { width: 100%; height: 200px; border-radius: 8px; }
+
+/* Notificação */
+.notificacao {
+    position: fixed; top: 20px; right: 20px;
+    background: #4caf50; color: white; padding: 10px 20px;
+    border-radius: 6px; display: none; box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+/* Botões de administração */
+.admin-buttons {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+.admin-buttons h3 { margin-top: 0; }
+.admin-buttons a {
+    display: inline-block;
+    margin: 5px;
+    padding: 8px 15px;
+    background: #17a2b8;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+.admin-buttons a:hover { background: #138496; }
+
+/* Modal de confirmação */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+}
+.modal-buttons {
+    margin-top: 20px;
+}
+.modal-buttons button {
+    padding: 8px 16px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.btn-confirmar {
+    background: #e74c3c;
+    color: white;
+}
+.btn-cancelar {
+    background: #7f8c8d;
+    color: white;
+}
+</style>
+</head>
+<body>
+
+<h1> COMPLEXO ESCOLAR PRIVADO CASTELO REIS</h1>
+
+<div class="container">
+    <!-- Chatbot -->
+    <div id="chatbot-box">
+        <h2>🤖 ASSISTENTE VIRTUAL CEPCR</h2>
+        <form method="post" id="form-chatbot">
+            <input type="text" name="mensagem" placeholder="Faça uma pergunta..." required>
+            <button type="submit">🔍 Perguntar</button>
+        </form>
+        
+        {% if resposta %}
+        <div class="resposta-automatica">{{ resposta }}</div>
+        {% endif %}
+
+        <hr>
+        <h2>📤 Enviar Arquivo</h2>
+        <form action="/upload" method="post" enctype="multipart/form-data" id="form-upload">
+            <input type="text" name="nome" placeholder="Seu nome" required>
+            <input type="text" name="contacto" placeholder="Seu contacto" required>
+            <textarea name="comentario" placeholder="Comentário"></textarea>
+            <input type="file" name="arquivo" required>
+            <button type="submit">📥 Enviar</button>
+        </form>
+
+        <hr>
+        <h2>📢 Reclamação/Sugestão</h2>
+        <form action="/feedback" method="post" id="form-feedback">
+            <input type="text" name="encarregado" placeholder="Nome do Encarregado" required>
+            <input type="text" name="aluno" placeholder="Nome do Aluno" required>
+            <input type="text" name="contacto" placeholder="Contacto" required>
+            <textarea name="mensagem" rows="3" placeholder="Digite sua mensagem..." required></textarea>
+            <button type="submit">📤 Enviar</button>
+        </form>
+        
+        <!-- Área de administração -->
+        <div class="admin-buttons">
+            <h3>🔧 Administração</h3>
+            <a href="/upload_arquivos">Upload de Arquivos</a>
+            <a href="/exportar/conversas">Exportar Conversas</a>
+            <a href="/exportar/envios">Exportar Envios</a>
+            <a href="/exportar/feedback">Exportar Feedback</a>
+            <a href="/baixar_recebidos">Baixar Arquivos Recebidos</a>
+            <a href="/login_dados">Visualizar Dados Recebidos</a>
+        </div>
+    </div>
+
+    <!-- Arquivos -->
+    <div class="col-arquivos">
+        <div class="box">
+            <h2>📂 Arquivos Disponíveis</h2>
+            <ul>
+            {% for arquivo in arquivos %}
+                <li>
+                    <strong>{{ arquivo }}</strong>
+                    <div class="acoes-arquivo">
+                        <a href="{{ url_for('download', nome_arquivo=arquivo) }}" class="btn-baixar">⬇️ Baixar</a>
+                        <a href="#" class="btn-remover" data-arquivo="{{ arquivo }}">❌ Remover</a>
+                    </div>
+                    <div>
+                    {% set ext = arquivo.split('.')[-1].lower() %}
+                    {% if ext in ['jpg','jpeg','png','gif','bmp','webp'] %}
+                        <img src="{{ url_for('visualizar_arquivo', nome_arquivo=arquivo) }}" class="preview-img" onerror="this.style.display='none'">
+                    {% elif ext == 'pdf' %}
+                        <iframe src="{{ url_for('visualizar_arquivo', nome_arquivo=arquivo) }}" class="preview-pdf" onerror="this.style.display='none'"></iframe>
+                    {% else %}
+                        <p>Preview não disponível para este tipo de arquivo.</p>
+                    {% endif %}
+                    </div>
+                </li>
+            {% else %}
+                <li>Nenhum arquivo disponível</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação para remover arquivo -->
+<div id="modal-remover" class="modal">
+    <div class="modal-content">
+        <h3>Confirmar Remoção</h3>
+        <p>Tem certeza que deseja remover o arquivo "<span id="nome-arquivo-modal"></span>"?</p>
+        <div class="modal-buttons">
+            <button class="btn-confirmar" id="btn-confirmar-remover">Sim, Remover</button>
+            <button class="btn-cancelar" id="btn-cancelar-remover">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div class="notificacao" id="notificacao">✅ Nova mensagem ou arquivo recebido!</div>
+
+<script>
+// Mostra notificação temporária
+function mostrarNotificacao(msg) {
+    const notif = document.getElementById("notificacao");
+    notif.innerText = msg;
+    notif.style.display = "block";
+    setTimeout(() => { notif.style.display = "none"; }, 5000);
+}
+
+// Captura envio de formulário e mostra notificação
+document.getElementById('form-upload').addEventListener('submit', () => {
+    mostrarNotificacao('📥 Arquivo enviado com sucesso!');
+});
+document.getElementById('form-feedback').addEventListener('submit', () => {
+    mostrarNotificacao('📢 Feedback enviado com sucesso!');
+});
+document.getElementById('form-chatbot').addEventListener('submit', () => {
+    mostrarNotificacao('🤖 Pergunta enviada ao chatbot!');
+});
+
+// Funcionalidade para remover arquivos
+const modal = document.getElementById('modal-remover');
+const nomeArquivoModal = document.getElementById('nome-arquivo-modal');
+const btnConfirmar = document.getElementById('btn-confirmar-remover');
+const btnCancelar = document.getElementById('btn-cancelar-remover');
+let arquivoParaRemover = '';
+
+// Adiciona evento de clique a todos os botões de remover
+document.querySelectorAll('.btn-remover').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        arquivoParaRemover = this.getAttribute('data-arquivo');
+        nomeArquivoModal.textContent = arquivoParaRemover;
+        modal.style.display = 'block';
+    });
+});
+
+// Confirma a remoção
+btnConfirmar.addEventListener('click', () => {
+    if (arquivoParaRemover) {
+        // Envia requisição para remover o arquivo
+        fetch('/remover_arquivo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ arquivo: arquivoParaRemover })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                mostrarNotificacao('✅ Arquivo removido com sucesso!');
+                // Recarrega a página após 1 segundo para atualizar a lista
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                mostrarNotificacao('❌ Erro ao remover arquivo!');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            mostrarNotificacao('❌ Erro ao remover arquivo!');
+        });
+        
+        modal.style.display = 'none';
+    }
+});
+
+// Cancela a remoção
+btnCancelar.addEventListener('click', () => {
+    modal.style.display = 'none';
+    arquivoParaRemover = '';
+});
+
+// Fecha o modal ao clicar fora dele
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+        arquivoParaRemover = '';
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+git rm meus_arquivos/teste.txt
+git commit -m "Removi teste.txt da pasta meus_arquivos"
+git push origin main
+
+
+
+git add meus_arquivos/teste.txt
+git commit -m "Adicionei teste.txt na pasta meus_arquivos"
+git push origin main
+
+apagar 
+
+git rm --cached meus_arquivos/teste.txt
+
+git rm -r nome_da_pasta/
+
+git rm -r arquivos/
+git commit -m "Removi a pasta arquivos"
+git push origin main
+
+
+
+git status
+Vai aparecer os arquivos em vermelho como deleted:.
+
+Agora confirma a exclusão no commit:
+
+bash
+Copiar código
+git commit -m "Removendo arquivos da pasta arquivos/"
+Dá o push:
+
+bash
+Copiar código
+git push origin main
+Agora, se tu quer manter a pasta vazia no repositório, cria o .gitkeep:
+
+bash
+Copiar código
+mkdir -p arquivos
+echo "" > arquivos/.gitkeep
+git add arquivos/.gitkeep
+git commit -m "Mantendo pasta arquivos vazia"
+git push origin main

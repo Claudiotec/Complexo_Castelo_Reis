@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dados Recebidos</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #2c3e50; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 10px 15px; background: #3498db; color: white; text-decoration: none; border-radius: 6px; }
+        .btn:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #219653; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2c3e50; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .section { margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
+        .acoes { display: flex; gap: 5px; }
+        .acoes a, .acoes button { 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            text-decoration: none; 
+            color: white; 
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        /* Modal de confirmação */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-buttons {
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            padding: 8px 16px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-confirmar {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-cancelar {
+            background: #7f8c8d;
+            color: white;
+        }
+        
+        /* Notificação */
+        .notificacao {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            display: none;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dados Recebidos</h1>
+            <div>
+                <a href="{{ url_for('baixar_recebidos') }}" class="btn">📥 Baixar Tudo (ZIP)</a>
+                <a href="{{ url_for('logout_dados') }}" class="btn btn-danger">🚪 Sair</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Registros de Envio</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data/Hora</th>
+                        <th>Nome</th>
+                        <th>Contacto</th>
+                        <th>Comentário</th>
+                        <th>Arquivo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for envio in envios %}
+                    <tr>
+                        <td>{{ envio.id }}</td>
+                        <td>{{ envio.datahora }}</td>
+                        <td>{{ envio.nome }}</td>
+                        <td>{{ envio.contacto }}</td>
+                        <td>{{ envio.comentario }}</td>
+                        <td>
+                            {% if envio.arquivo %}
+                                {{ envio.arquivo }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="acoes">
+                            {% if envio.arquivo %}
+                            <a href="{{ url_for('visualizar_recebido', nome_arquivo=envio.arquivo) }}" target="_blank" style="background: #3498db;">
+                                👁️ Visualizar
+                            </a>
+                            <a href="{{ url_for('download_recebido', nome_arquivo=envio.arquivo) }}" style="background: #27ae60;">
+                                📥 Download
+                            </a>
+                            <button onclick="confirmarRemocao('{{ envio.id }}', '{{ envio.arquivo }}', 'envio')" style="background: #e74c3c;">
+                                ❌ Remover
+                            </button>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>📁 Arquivos na Pasta Dados Recebidos</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome do Arquivo</th>
+                        <th>Tamanho</th>
+                        <th>Data de Modificação</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for arquivo in arquivos %}
+                    <tr>
+                        <td>{{ arquivo.nome }}</td>
+                        <td>{{ "%.2f"|format(arquivo.tamanho / 1024) }} KB</td>
+                        <td>{{ arquivo.data_modificacao.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td class="acoes">
+                            <a href="{{ url_for('visualizar_recebido', nome_arquivo=arquivo.nome) }}" target="_blank" style="background: #3498db;">
+                                👁️ Visualizar
+                            </a>
+                            <a href="{{ url_for('download_recebido', nome_arquivo=arquivo.nome) }}" style="background: #27ae60;">
+                                📥 Download
+                            </a>
+                            <button onclick="confirmarRemocao('{{ arquivo.nome }}', '{{ arquivo.nome }}', 'arquivo')" style="background: #e74c3c;">
+                                ❌ Remover
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação para remover arquivo -->
+    <div id="modal-remover" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar Remoção</h3>
+            <p>Tem certeza que deseja remover o arquivo "<span id="nome-arquivo-modal"></span>"?</p>
+            <div class="modal-buttons">
+                <button class="btn-confirmar" id="btn-confirmar-remover">Sim, Remover</button>
+                <button class="btn-cancelar" id="btn-cancelar-remover">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notificacao" id="notificacao">✅ Operação realizada com sucesso!</div>
+
+    <script>
+        // Variáveis globais para controle da remoção
+        let itemParaRemover = '';
+        let tipoParaRemover = '';
+        
+        // Mostra notificação temporária
+        function mostrarNotificacao(msg, tipo = 'success') {
+            const notif = document.getElementById("notificacao");
+            notif.innerText = msg;
+            notif.style.background = tipo === 'success' ? '#4caf50' : '#e74c3c';
+            notif.style.display = "block";
+            setTimeout(() => { notif.style.display = "none"; }, 5000);
+        }
+
+        // Função para confirmar a remoção
+        function confirmarRemocao(id, nome, tipo) {
+            itemParaRemover = id;
+            tipoParaRemover = tipo;
+            document.getElementById('nome-arquivo-modal').textContent = nome;
+            document.getElementById('modal-remover').style.display = 'block';
+        }
+
+        // Configura os eventos dos botões do modal
+        document.getElementById('btn-confirmar-remover').addEventListener('click', () => {
+            if (itemParaRemover && tipoParaRemover) {
+                // Envia requisição para remover o item
+                fetch('/remover_item', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        id: itemParaRemover, 
+                        tipo: tipoParaRemover 
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mostrarNotificacao('✅ Item removido com sucesso!');
+                        // Recarrega a página após 1 segundo para atualizar a lista
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        mostrarNotificacao('❌ Erro ao remover item!', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    mostrarNotificacao('❌ Erro ao remover item!', 'error');
+                });
+                
+                document.getElementById('modal-remover').style.display = 'none';
+            }
+        });
+
+        // Cancela a remoção
+        document.getElementById('btn-cancelar-remover').addEventListener('click', () => {
+            document.getElementById('modal-remover').style.display = 'none';
+            itemParaRemover = '';
+            tipoParaRemover = '';
+        });
+
+        // Fecha o modal ao clicar fora dele
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('modal-remover');
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                itemParaRemover = '';
+                tipoParaRemover = '';
+            }
+        });
+    </script>
+</body>
+</html>
